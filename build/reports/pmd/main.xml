@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 http://pmd.sourceforge.net/report_2_0_0.xsd" version="6.39.0" timestamp="2022-10-31T12:06:15.772">
+<file name="/home/orestis/workspaces/aws-cli-java/src/main/java/no/unit/examplepackage/S3handler.java">
+<violation beginline="15" endline="15" begincolumn="22" endcolumn="29" rule="ImmutableField" ruleset="Design" package="no.unit.examplepackage" class="S3handler" variable="s3Client" externalInfoUrl="https://pmd.github.io/pmd-6.39.0/pmd_rules_java_design.html#immutablefield" priority="3">
+Private field 's3Client' could be made final; it is only initialized in the declaration or constructor.
+</violation>
+</file>
+</pmd>

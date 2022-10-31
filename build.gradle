@@ -1,0 +1,108 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'pmd'
+    id "nebula.lint" version "16.9.0"
+
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    mavenCentral()
+}
+
+wrapper{
+    gradleVersion= "6.5"
+}
+
+def jupiterVersion = "5.6.0"
+project.ext{
+    awsSdkVersion = '1.12.331'
+    nvaCommonsVersion = '1.25.15'
+}
+
+dependencies {
+
+
+    // https://mvnrepository.com/artifact/software.amazon.awssdk/codepipeline
+    implementation group: 'software.amazon.awssdk', name: 'codepipeline', version: '2.17.93'
+
+
+    testImplementation group: 'com.github.bibsysdev', name: 'core', version: project.ext.nvaCommonsVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: project.ext.awsSdkVersion
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-cognitoidp', version: project.ext.awsSdkVersion
+
+
+
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: jupiterVersion
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+
+}
+
+test {
+    useJUnitPlatform{
+        it.excludeTags("online")
+    }
+    failFast = true
+    testLogging {
+        events 'skipped', 'passed', 'failed'
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+
+pmd {
+    ruleSetConfig = rootProject.resources.text.fromFile('config/pmd/ruleset.xml')
+    ruleSets = []
+    ignoreFailures = false
+}
+
+checkstyle {
+    configFile = rootProject.resources.text.fromFile('config/checkstyle/checkstyle.xml').asFile()
+    showViolations = true
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.stylesheet rootProject.resources.text.fromFile('config/checkstyle/checkstyle-simple.xsl')
+    }
+}
+
+// jacoco configuration
+check.dependsOn jacocoTestCoverageVerification
+jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'METHOD'
+                value = 'COVEREDRATIO'
+                minimum = 0.00
+            }
+        }
+
+        rule {
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = 0.00
+            }
+        }
+    }
+}
+
+gradleLint {
+    rules  = ['all-dependency','duplicate-dependency-class']
+}

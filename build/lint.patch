@@ -1,0 +1,11 @@
+diff --git a/build.gradle b/build.gradle
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,6 +41,7 @@
+     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: jupiterVersion
+     testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.2'
+ 
++    implementation 'com.amazonaws:aws-java-sdk-core:1.12.331'
+ }
+ 
+ test {

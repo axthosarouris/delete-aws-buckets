@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S3handler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">aws-java-tools</a> &gt; <a href="index.source.html" class="el_package">no.unit.examplepackage</a> &gt; <span class="el_source">S3handler.java</span></div><h1>S3handler.java</h1><pre class="source lang-java linenums">package no.unit.examplepackage;
+
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ListVersionsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.VersionListing;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class S3handler {
+
+    private AmazonS3 s3Client;
+
+<span class="nc" id="L17">    public S3handler() {</span>
+<span class="nc" id="L18">        this.s3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_WEST_1).build();</span>
+<span class="nc" id="L19">    }</span>
+
+    public List&lt;String&gt; listAllBuckets() {
+<span class="nc" id="L22">        return s3Client.listBuckets().stream()</span>
+<span class="nc" id="L23">            .map(Bucket::getName)</span>
+<span class="nc" id="L24">            .sorted()</span>
+<span class="nc" id="L25">            .collect(Collectors.toList());</span>
+    }
+
+    public void emptyAndDeleteBucket(String bucketName) {
+<span class="nc" id="L29">        emptyBucket(bucketName);</span>
+<span class="nc" id="L30">        s3Client.deleteBucket(bucketName);</span>
+<span class="nc" id="L31">    }</span>
+
+    public void createBucket(String bucketName){
+<span class="nc" id="L34">        s3Client.createBucket(bucketName);</span>
+<span class="nc" id="L35">    }</span>
+
+    public void emptyBucket(String bucketName) {
+<span class="nc" id="L38">        System.out.println(bucketName);</span>
+<span class="nc" id="L39">        VersionListing versionListing = s3Client</span>
+<span class="nc" id="L40">            .listVersions(new ListVersionsRequest().withBucketName(bucketName));</span>
+
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        while (versionListing.isTruncated()) {</span>
+<span class="nc" id="L43">            deleteVersionBatch(bucketName, s3Client, versionListing);</span>
+<span class="nc" id="L44">            versionListing = s3Client.listNextBatchOfVersions(versionListing);</span>
+        }
+<span class="nc" id="L46">        deleteVersionBatch(bucketName, s3Client, versionListing);</span>
+
+<span class="nc" id="L48">        ObjectListing objectListing = s3Client.listObjects(bucketName);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        while (objectListing.isTruncated()) {</span>
+<span class="nc" id="L50">            deleteObjectBatch(bucketName, s3Client, objectListing);</span>
+<span class="nc" id="L51">            objectListing = s3Client.listNextBatchOfObjects(objectListing);</span>
+        }
+
+<span class="nc" id="L54">        deleteObjectBatch(bucketName, s3Client, objectListing);</span>
+
+        // Be sure we have nothing more to delete
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (!versionListing.getVersionSummaries().isEmpty() || !objectListing.getObjectSummaries()</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            .isEmpty()) {</span>
+<span class="nc" id="L59">            emptyBucket(bucketName);</span>
+        }
+<span class="nc" id="L61">    }</span>
+
+
+    public void count(){
+
+<span class="nc" id="L66">    }</span>
+
+    private void deleteObjectBatch(String bucketName, AmazonS3 s3, ObjectListing objectListing) {
+<span class="nc" id="L69">        objectListing.getObjectSummaries()</span>
+<span class="nc" id="L70">            .forEach(object -&gt; s3.deleteObject(bucketName, object.getKey()));</span>
+<span class="nc" id="L71">    }</span>
+
+    private void deleteVersionBatch(String bucketName, AmazonS3 s3, VersionListing versionListing) {
+<span class="nc" id="L74">        versionListing.getVersionSummaries()</span>
+<span class="nc" id="L75">            .forEach(</span>
+<span class="nc" id="L76">                version -&gt; s3.deleteVersion(bucketName, version.getKey(), version.getVersionId()));</span>
+<span class="nc" id="L77">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
